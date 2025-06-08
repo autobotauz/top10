@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,29 +21,53 @@
     </nav>
   </header>
   <main class="container my-5">
-    <article>
-      <h1>Amazon ASIN Quick Link</h1>
-      <p>Enter an Amazon ASIN number below to go directly to the product page with our affiliate tag.</p>
-      <form id="asinForm" class="row g-3">
-        <div class="col-auto">
-          <input type="text" class="form-control" id="asinInput" placeholder="Enter ASIN (e.g., B004J2KDHK)" required>
+    <section class="text-center mb-5">
+    </section>
+    <section class="mb-5">
+      <h2>Amazon Quick Affiliate Link</h2>
+      <form id="amazonUrlForm" class="row g-3 justify-content-center">
+        <div class="col-md-6">
+          <input type="url" class="form-control" id="amazonUrlInput" placeholder="Paste any Amazon product URL here" required>
         </div>
         <div class="col-auto">
           <button type="submit" class="btn btn-success mb-3">Go to Amazon</button>
         </div>
+        <div class="col-12">
+          <div id="urlError" class="text-danger"></div>
+        </div>
       </form>
-    </article>
+    </section>
   </main>
   <footer class="bg-light text-center p-3 mt-5">
     <small>This site contains affiliate links, and we may earn a commission for purchases made.</small>
   </footer>
   <script>
-    document.getElementById('asinForm').addEventListener('submit', function(e) {
+    // Amazon URL to affiliate redirect
+    function extractASIN(url) {
+      // Try to match /dp/ASIN or /gp/product/ASIN or /product/ASIN
+      var match = url.match(/\/dp\/([A-Z0-9]{10})|\/gp\/product\/([A-Z0-9]{10})|\/product\/([A-Z0-9]{10})/i);
+      if (match) {
+        return match[1] || match[2] || match[3];
+      }
+      // Try to match ?ASIN=...
+      var queryMatch = url.match(/[?&]ASIN=([A-Z0-9]{10})/i);
+      if (queryMatch) {
+        return queryMatch[1];
+      }
+      return null;
+    }
+
+    document.getElementById('amazonUrlForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      var asin = document.getElementById('asinInput').value.trim();
+      var url = document.getElementById('amazonUrlInput').value.trim();
+      var asin = extractASIN(url);
+      var errorDiv = document.getElementById('urlError');
       if (asin) {
-        var url = 'https://www.amazon.com/dp/' + encodeURIComponent(asin) + '?tag=10ec1c-20';
-        window.open(url, '_blank');
+        errorDiv.textContent = '';
+        var affiliateUrl = 'https://www.amazon.com/dp/' + encodeURIComponent(asin) + '?tag=10ec1c-20';
+        window.open(affiliateUrl, '_blank');
+      } else {
+        errorDiv.textContent = 'Could not find a valid ASIN in the provided URL.';
       }
     });
   </script>
