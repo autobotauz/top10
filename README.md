@@ -2,26 +2,6 @@
 
 A static, SEO-optimized affiliate marketing site focused on budget camping gear. Built with semantic HTML5, Bootstrap 5, and custom CSS. Deployed on GitHub Pages.
 
-## Project Structure
-
-```
-├── index.html
-├── about.html
-├── contact.html
-├── articles/
-│   ├── article1.html
-│   ├── article2.html
-│   └── article3.html
-├── assets/
-│   ├── css/
-│   │   └── styles.css
-│   ├── images/
-│   └── js/
-│       └── scripts.js
-├── sitemap.xml
-└── README.md
-```
-
 ## Features
 - Responsive, mobile-first design (Bootstrap 5)
 - 3+ SEO-optimized articles with affiliate links
