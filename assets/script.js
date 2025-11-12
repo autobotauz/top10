@@ -162,6 +162,24 @@ function setMetaTag(type, name, content){
   el.setAttribute('content', content);
 }
 
+function setCanonical(href){
+  if(!href) return;
+  let link = document.head.querySelector('link[rel="canonical"]');
+  if(!link){
+    link = document.createElement('link');
+    link.setAttribute('rel','canonical');
+    document.head.appendChild(link);
+  }
+  // strip hash for canonical
+  try{
+    const u = new URL(href, location.origin);
+    u.hash = '';
+    link.setAttribute('href', u.toString());
+  }catch(_){
+    link.setAttribute('href', href);
+  }
+}
+
 function renderCategory(){
   const catId = getQueryParam('cat');
   if(!catId){ document.getElementById('item-list').innerHTML = '<li>No category specified.</li>'; return; }
@@ -178,6 +196,9 @@ function renderCategory(){
     const seen = new Set();
     items = scraped.filter(it=>{
       const key = it.asin || it.url;
+  // Set SEO basics
+  setMetaTag('name','robots','index,follow');
+  setCanonical(location.origin + location.pathname);
       if(seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -198,6 +219,9 @@ function renderCategory(){
   if(titleEl) titleEl.textContent = 'Top 10 ' + cat.name + ' ' + year;
   const metaDesc = document.getElementById('meta-description');
   if(metaDesc) metaDesc.setAttribute('content', 'Top 10 ' + cat.name + ' for ' + year + '.');
+  // SEO: robots + canonical for category
+  setMetaTag('name','robots','index,follow');
+  setCanonical(location.origin + location.pathname + '?cat=' + encodeURIComponent(cat.id));
   // Social meta (best-effort; some crawlers may not execute JS)
   setMetaTag('property','og:title','Top 10 '+cat.name+' '+year);
   setMetaTag('property','og:description','The 10 picks we recommend for '+cat.name+' in '+year+'.');

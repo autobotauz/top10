@@ -64,6 +64,13 @@ Static, auto-year Top 10 product category site for GitHub Pages.
 - JSON-LD `ItemList` injected for categories and items.
 - Lightweight (no frameworks) for fast load.
 
+### Sitemap
+- A `sitemap.xml` is generated from `top10.json` and referenced by `robots.txt`.
+- To regenerate after updating `top10.json`:
+  - Windows PowerShell: `python .\tools\generate_sitemap.py`
+  - Set the BASE_URL env var if your deploy URL differs (default assumes `https://item-rank.com/top10/`).
+  - The script writes `sitemap.xml` into this folder.
+
 ## Compliance
 Include clear disclosure: "As an Amazon Associate I earn from qualifying purchases." Already injected. Ensure overall site meets Amazon Associates Program Policies (accurate pricing, no claims of guaranteed prices, etc.).
 
