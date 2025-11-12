@@ -64,30 +64,40 @@ function renderYearSpans(){
   ['year','year-footer'].forEach(id=>{const el=document.getElementById(id); if(el) el.textContent = y;});
 }
 
+function niceTitleFromId(id){
+  return id.split('-').map(s=>s.charAt(0).toUpperCase()+s.slice(1)).join(' ');
+}
+
 function renderIndex(){
   const wrap = document.getElementById('category-list');
   if(!wrap) return;
-  const data = window.TOP10_DATA.categories;
+  const allMeta = (window.TOP10_DATA && window.TOP10_DATA.categories) || [];
+  const metaMap = Object.fromEntries(allMeta.map(c=>[c.id, c]));
+  const scraped = window.SCRAPED_TOP10 || {};
+  const scrapedIds = Object.keys(scraped);
+  const categories = scrapedIds.length ? scrapedIds.map(id=>({
+    id,
+    name: metaMap[id]?.name || niceTitleFromId(id),
+    description: metaMap[id]?.description || 'Top 10 picks for '+niceTitleFromId(id)+'.'
+  })) : allMeta; // fallback to static if no scraped data yet
+
   const year = getCurrentYear();
-  // Set document title dynamically
   document.title = 'Top 10 Product Lists ' + year;
-  // Set site name if configured
   const siteNameEl = document.getElementById('site-name');
   if(siteNameEl && window.TOP10_CONFIG?.siteName){
     siteNameEl.textContent = window.TOP10_CONFIG.siteName;
   }
-  wrap.innerHTML = data.map(cat=>{
+  wrap.innerHTML = categories.map(cat=>{
     return `<a class="category-card" href="./categories/category.html?cat=${cat.id}" aria-label="Top 10 ${cat.name} ${year}">`+
       `<h2>Top 10 ${cat.name} <span class="badge">${year}</span></h2>`+
       `<p>${cat.description}</p>`+
       `</a>`;
   }).join('');
-  // SEO JSON-LD for list of categories
   const ld = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     'name': 'Top 10 Product Categories '+year,
-    'itemListElement': data.map((cat,i)=>({
+    'itemListElement': categories.map((cat,i)=>({
       '@type': 'ListItem',
       'position': i+1,
       'url': location.origin + location.pathname.replace(/index\.html$/,'') + 'categories/category.html?cat=' + cat.id,
@@ -274,8 +284,11 @@ async function init(){
   // Load scraped dataset in background; category page will await if needed
   const pageType = document.body.getAttribute('data-page');
   const loadPromise = loadScrapedData().catch(()=>({}));
-  if(pageType==='index') renderIndex();
-  if(pageType==='index') attachFilter();
+  if(pageType==='index'){
+    await loadPromise; // ensure we have scraped keys for building the index
+    renderIndex();
+    attachFilter();
+  }
   else if(pageType==='category'){
     // Ensure scraped data attempted before render
     await loadPromise;
