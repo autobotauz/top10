@@ -75,17 +75,22 @@ function renderIndex(){
   const metaMap = Object.fromEntries(allMeta.map(c=>[c.id, c]));
   const scraped = window.SCRAPED_TOP10 || {};
   const scrapedIds = Object.keys(scraped);
-  const categories = scrapedIds.length ? scrapedIds.map(id=>({
+  // Build categories ONLY from scraped JSON; do not fall back to static
+  const categories = scrapedIds.map(id=>({
     id,
     name: metaMap[id]?.name || niceTitleFromId(id),
     description: metaMap[id]?.description || 'Top 10 picks for '+niceTitleFromId(id)+'.'
-  })) : allMeta; // fallback to static if no scraped data yet
+  }));
 
   const year = getCurrentYear();
   document.title = 'Top 10 Product Lists ' + year;
   const siteNameEl = document.getElementById('site-name');
   if(siteNameEl && window.TOP10_CONFIG?.siteName){
     siteNameEl.textContent = window.TOP10_CONFIG.siteName;
+  }
+  if(categories.length === 0){
+    wrap.innerHTML = '<p class="notice">No categories loaded. Ensure top10.json is available and page is served over HTTP/HTTPS.</p>';
+    return;
   }
   wrap.innerHTML = categories.map(cat=>{
     return `<a class="category-card" href="./categories/category.html?cat=${cat.id}" aria-label="Top 10 ${cat.name} ${year}">`+
@@ -160,8 +165,11 @@ function setMetaTag(type, name, content){
 function renderCategory(){
   const catId = getQueryParam('cat');
   if(!catId){ document.getElementById('item-list').innerHTML = '<li>No category specified.</li>'; return; }
-  const cat = window.TOP10_DATA.categories.find(c=>c.id===catId);
-  if(!cat){ document.getElementById('item-list').innerHTML = '<li>Category not found.</li>'; return; }
+  let cat = (window.TOP10_DATA && window.TOP10_DATA.categories || []).find(c=>c.id===catId);
+  if(!cat){
+    // Synthesize minimal category meta from the URL if not in static data
+    cat = { id: catId, name: niceTitleFromId(catId), description: 'Top 10 picks for '+niceTitleFromId(catId)+'.' };
+  }
   // Prefer scraped data if available
   const scraped = window.SCRAPED_TOP10 && window.SCRAPED_TOP10[catId];
   let items = cat.items;
@@ -234,7 +242,13 @@ function renderCategory(){
 
 // Attempt to load scraped top10.json and expose as window.SCRAPED_TOP10
 async function loadScrapedData(){
-  if(window.SCRAPED_TOP10) return window.SCRAPED_TOP10;
+  // If opened directly from disk (file://), browsers block fetch for local files.
+  // In that case, immediately return any embedded dataset to avoid CORS errors.
+  if (location.protocol === 'file:') {
+    console.warn('Cannot fetch top10.json over file://. Serve over HTTP/HTTPS to load dynamic categories.');
+    return {};
+  }
+  // Always try to fetch latest file first; fall back to any embedded global
   const candidates = [
     './top10.json', // index page
     '../top10.json', // category page
@@ -244,7 +258,8 @@ async function loadScrapedData(){
   ];
   for(const path of candidates){
     try{
-      const res = await fetch(path, { cache: 'no-cache' });
+      const url = path + (path.includes('?') ? '&' : '?') + 't=' + Date.now();
+      const res = await fetch(url, { cache: 'no-cache' });
       if(!res.ok) continue;
       const json = await res.json();
       // Transform to { [categoryId]: items[] }
@@ -270,7 +285,7 @@ async function loadScrapedData(){
         });
         out[catId] = items;
       });
-      window.SCRAPED_TOP10 = out;
+      window.SCRAPED_TOP10 = out; // update cache with freshest data
       return out;
     }catch(e){ /* try next */ }
   }
