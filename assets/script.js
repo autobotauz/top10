@@ -75,8 +75,11 @@ function renderIndex(){
   const metaMap = Object.fromEntries(allMeta.map(c=>[c.id, c]));
   const scraped = window.SCRAPED_TOP10 || {};
   const scrapedIds = Object.keys(scraped);
+  const theme = getThemeFromUrl?.() || 'all';
+  if (typeof setActiveSeasonLink === 'function') setActiveSeasonLink(theme);
+  const ids = (typeof filterCategoryKeysByTheme === 'function') ? filterCategoryKeysByTheme(scrapedIds, theme) : scrapedIds;
   // Build categories ONLY from scraped JSON; do not fall back to static
-  const categories = scrapedIds.map(id=>({
+  const categories = ids.map(id=>({
     id,
     name: metaMap[id]?.name || niceTitleFromId(id),
     description: metaMap[id]?.description || 'Top 10 picks for '+niceTitleFromId(id)+'.'
@@ -84,6 +87,9 @@ function renderIndex(){
 
   const year = getCurrentYear();
   document.title = 'Top 10 Product Lists ' + year;
+  // SEO basics for index
+  setMetaTag('name','robots','index,follow');
+  setCanonical(location.origin + location.pathname);
   const siteNameEl = document.getElementById('site-name');
   if(siteNameEl && window.TOP10_CONFIG?.siteName){
     siteNameEl.textContent = window.TOP10_CONFIG.siteName;
@@ -98,6 +104,8 @@ function renderIndex(){
       `<p>${cat.description}</p>`+
       `</a>`;
   }).join('');
+  // Re-wire filter after re-render
+  attachFilter();
   const ld = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
@@ -117,10 +125,10 @@ function attachFilter(){
   const countEl = document.getElementById('filter-count');
   const listWrap = document.getElementById('category-list');
   if(!input || !listWrap) return;
-  const cards = Array.from(listWrap.querySelectorAll('.category-card'));
   function update(){
     const q = input.value.trim().toLowerCase();
     let visible = 0;
+    const cards = Array.from(listWrap.querySelectorAll('.category-card'));
     cards.forEach(card=>{
       const text = card.textContent.toLowerCase();
       const match = !q || text.includes(q);
@@ -196,9 +204,6 @@ function renderCategory(){
     const seen = new Set();
     items = scraped.filter(it=>{
       const key = it.asin || it.url;
-  // Set SEO basics
-  setMetaTag('name','robots','index,follow');
-  setCanonical(location.origin + location.pathname);
       if(seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -264,6 +269,50 @@ function renderCategory(){
   injectJsonLd(ld);
 }
 
+// Seasonal filtering helpers
+const SEASONAL_FILTERS = {
+  all: [],
+  christmas: ['christmas','holiday','ornament','string','light','candle','wrapping','wrap','gift','hot-chocolate','batteries','extension','power-strip','socks'],
+  birthdays: ['gift','card','wrap','party','balloon','candles','wallet','sunglasses','backpack','earbuds','speaker','power','charger'],
+  halloween: ['halloween','costume','decor','candy','string','light','candle'],
+  thanksgiving: ['thanksgiving','kitchen','air-fryer','roaster','blender','food-storage','paper-towels','trash-bags','candles'],
+  spring: ['clean','vacuum','mop','fresh','air','fabric','stain','sponge','broom','laundry','hand-soap','water-bottle']
+};
+
+function getThemeFromUrl(){
+  return (new URL(location.href).searchParams.get('theme')||'all').toLowerCase();
+}
+function setActiveSeasonLink(theme){
+  document.querySelectorAll('.season-link').forEach(a=>{
+    a.classList.toggle('active', (a.dataset.theme||'all')===theme);
+  });
+}
+function categoryMatchesTheme(catId, theme){
+  if(theme==='all' || !SEASONAL_FILTERS[theme]) return true;
+  const hay = catId.toLowerCase();
+  return SEASONAL_FILTERS[theme].some(w=>hay.includes(w));
+}
+function filterCategoryKeysByTheme(keys, theme){
+  return keys.filter(k=>categoryMatchesTheme(k, theme));
+}
+
+function initSeasonNav(){
+  document.querySelectorAll('.season-link').forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const theme = (a.dataset.theme||'all').toLowerCase();
+      const u = new URL(location.href);
+      if(theme==='all') u.searchParams.delete('theme'); else u.searchParams.set('theme', theme);
+      history.pushState({theme},'',u.toString());
+      // Re-render index with new theme
+      renderIndex();
+    });
+  });
+  window.addEventListener('popstate', ()=>{
+    renderIndex();
+  });
+}
+
 // Attempt to load scraped top10.json and expose as window.SCRAPED_TOP10
 async function loadScrapedData(){
   // If opened directly from disk (file://), browsers block fetch for local files.
@@ -324,9 +373,9 @@ async function init(){
   const pageType = document.body.getAttribute('data-page');
   const loadPromise = loadScrapedData().catch(()=>({}));
   if(pageType==='index'){
+    initSeasonNav();
     await loadPromise; // ensure we have scraped keys for building the index
     renderIndex();
-    attachFilter();
   }
   else if(pageType==='category'){
     // Ensure scraped data attempted before render

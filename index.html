@@ -25,16 +25,29 @@
   <h1><span id="site-name">Item Rank</span> – Top 10 Lists <span id="year"></span></h1>
   <p class="tagline">Item Rank helps you buy smarter with concise, updated Top 10 picks.</p>
   </header>
-  <main>
-    <div class="filter-bar" role="search">
-      <input type="search" id="category-filter" placeholder="Filter categories..." aria-label="Filter categories" autocomplete="off" />
-      <span id="filter-count" class="filter-count" aria-live="polite"></span>
-    </div>
-    <section id="category-list" aria-label="Product Categories" class="category-grid">
-      <!-- Categories injected here -->
-    </section>
-    <aside class="disclosure" id="affiliate-disclosure"></aside>
-  </main>
+  <div class="layout">
+    <aside class="sidenav" aria-label="Seasonal filters">
+      <h2>Seasonal</h2>
+      <nav>
+        <a href="?theme=all" class="season-link" data-theme="all">All</a>
+        <a href="?theme=christmas" class="season-link" data-theme="christmas">Christmas</a>
+        <a href="?theme=birthdays" class="season-link" data-theme="birthdays">Birthdays</a>
+        <a href="?theme=halloween" class="season-link" data-theme="halloween">Halloween</a>
+        <a href="?theme=thanksgiving" class="season-link" data-theme="thanksgiving">Thanksgiving</a>
+        <a href="?theme=spring" class="season-link" data-theme="spring">Spring</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <div class="filter-bar" role="search">
+        <input type="search" id="category-filter" placeholder="Filter categories..." aria-label="Filter categories" autocomplete="off" />
+        <span id="filter-count" class="filter-count" aria-live="polite"></span>
+      </div>
+      <section id="category-list" aria-label="Product Categories" class="category-grid">
+        <!-- Categories injected here -->
+      </section>
+      <aside class="disclosure" id="affiliate-disclosure"></aside>
+    </main>
+  </div>
   <footer>
     <p>&copy; <span id="year-footer"></span> Item Rank. All rights reserved.</p>
   </footer>
