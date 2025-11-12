@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title id="page-title">Top 10 - Loading...</title>
+  <meta name="description" id="meta-description" content="Top 10 product list for the current year." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="../assets/favicon.svg" />
+  <meta property="og:site_name" content="Item Rank" />
+  <meta property="og:title" content="Item Rank – Category Top 10" />
+  <meta property="og:description" content="Browse Item Rank curated Top 10 picks." />
+  <meta property="og:image" content="https://item-rank.com/assets/og-default.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://item-rank.com/assets/og-default.svg" />
+  <link rel="stylesheet" href="../assets/style.css" />
+  <script defer src="../assets/data.js"></script>
+  <script defer src="../assets/scraped-top10.js"></script>
+  <script defer src="../assets/script.js"></script>
+</head>
+<body data-page="category">
+  <header>
+    <nav><a href="../index.html">← All Categories</a></nav>
+    <h1 id="category-heading">Top 10 <span id="category-name">Items</span> <span id="year"></span></h1>
+    <p id="category-intro" class="category-intro"></p>
+  </header>
+  <main>
+    <ol id="item-list" class="item-list" aria-label="Top 10 items">
+      <!-- Items injected here -->
+    </ol>
+    <aside class="disclosure" id="affiliate-disclosure"></aside>
+  </main>
+  <footer>
+    <p>&copy; <span id="year-footer"></span> Item Rank.</p>
+  </footer>
+</body>
+</html>

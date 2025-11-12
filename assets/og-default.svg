@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#1e293b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="80" y="110" width="1040" height="410" rx="32" fill="#111827" stroke="#22c55e" stroke-width="4"/>
+  <text x="600" y="280" font-family="system-ui,Segoe UI,Roboto,Helvetica,Arial" font-size="96" font-weight="700" text-anchor="middle" fill="#22c55e">Item Rank</text>
+  <text x="600" y="360" font-family="system-ui,Segoe UI,Roboto,Helvetica,Arial" font-size="40" text-anchor="middle" fill="#e5e7eb">Curated Top 10 Lists</text>
+  <text x="600" y="430" font-family="system-ui,Segoe UI,Roboto,Helvetica,Arial" font-size="32" text-anchor="middle" fill="#94a3b8">Buy smarter • Updated yearly</text>
+</svg>

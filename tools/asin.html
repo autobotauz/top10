@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Item Rank • ASIN Quick Link</title>
+  <meta name="description" content="Paste any Amazon URL and get a clean ASIN affiliate link with your tag." />
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="../assets/style.css" />
+  <style>
+    main{max-width:760px}
+    .card{background:#111827;border:1px solid #1f2937;border-radius:12px;padding:16px}
+    input,button{font-size:16px}
+    input{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #1f2937;background:#0b1220;color:#e5e7eb}
+    button{margin-top:10px;background:#22c55e;color:#0b1220;border:none;border-radius:8px;padding:10px 14px;font-weight:700}
+    .result{margin-top:12px;word-break:break-all}
+    .muted{color:#94a3b8;font-size:14px}
+  </style>
+  <script defer src="../assets/data.js"></script>
+</head>
+<body>
+  <header>
+    <nav><a href="../index.html">← Back to Item Rank</a></nav>
+    <h1>ASIN Quick Link</h1>
+    <p class="tagline">Paste any Amazon URL to generate a clean /dp link using your tag.</p>
+  </header>
+  <main>
+    <div class="card">
+      <label for="in">Amazon URL</label>
+      <input id="in" type="url" placeholder="https://www.amazon.com/..." />
+      <button id="go">Generate & Open</button>
+      <div class="result muted" id="out"></div>
+      <p class="muted">Tip: Prefer pasting an exact product URL. For search or category pages, this tool can’t infer the product.
+      </p>
+    </div>
+  </main>
+  <script>
+    function extractASIN(u){
+      if(!u) return null;
+      try{
+        const url=new URL(u);
+        if(url.hostname==='amzn.to') return { short:true, href:url.toString() };
+        const dp = url.pathname.match(/\/dp\/([A-Z0-9]{10})/i);
+        if(dp) return { asin: dp[1] };
+        const gp = url.pathname.match(/\/gp\/product\/([A-Z0-9]{10})/i);
+        if(gp) return { asin: gp[1] };
+        const prod = url.pathname.match(/\/product\/([A-Z0-9]{10})/i);
+        if(prod) return { asin: prod[1] };
+        const q = url.search.match(/[?&]ASIN=([A-Z0-9]{10})/i);
+        if(q) return { asin: q[1] };
+        return null;
+      }catch(e){return null}
+    }
+    function buildDp(asin){
+      const tag = (window.TOP10_CONFIG && window.TOP10_CONFIG.associateTag) || '';
+      const u = new URL('https://www.amazon.com/dp/'+asin);
+      if(tag) u.searchParams.set('tag', tag);
+      return u.toString();
+    }
+    document.getElementById('go').addEventListener('click', ()=>{
+      const raw = document.getElementById('in').value.trim();
+      const out = document.getElementById('out');
+      const res = extractASIN(raw);
+      if(!res){ out.textContent='Could not find a valid ASIN.'; return; }
+      if(res.short){ window.open(res.href,'_blank'); out.textContent=res.href; return; }
+      const href = buildDp(res.asin);
+      window.open(href,'_blank');
+      out.textContent = href;
+    });
+  </script>
+</body>
+</html>
